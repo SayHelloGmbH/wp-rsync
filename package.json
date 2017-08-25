@@ -1,7 +1,7 @@
 {
   "name": "wp-rsync",
   "version": "0.0.1",
-  "description": "This plugin lets you push Plugins Themes and Medias via rsync\r ## Changelog",
+  "description": "This plugin lets you push Plugins Themes and Medias via rsync",
   "main": "gulpfile.js",
   "repository": {
     "type": "git",

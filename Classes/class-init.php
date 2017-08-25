@@ -25,11 +25,6 @@ class Init {
 
 		//wp_enqueue_style( wprsync_get_instance()->prefix . '-style', $dir_uri . 'assets/styles/ui' . ( $min ? '.min' : '' ) . '.css', [], $script_version );
 		//wp_enqueue_script( wprsync_get_instance()->prefix . '-script', $dir_uri . 'assets/scripts/ui' . ( $min ? '.min' : '' ) . '.js', [ 'jquery' ], $script_version, true );
-
-		if ( is_user_logged_in() ) {
-			wp_enqueue_style( wprsync_get_instance()->prefix . '-admin-bar-style', $dir_uri . 'assets/styles/admin-bar' . ( $min ? '.min' : '' ) . '.css', [], $script_version );
-			wp_enqueue_script( wprsync_get_instance()->prefix . '-admin-bar-script', $dir_uri . 'assets/scripts/admin-bar' . ( $min ? '.min' : '' ) . '.js', [ 'jquery' ], $script_version, true );
-		}
 	}
 
 	public function add_admin_assets() {
@@ -46,7 +41,5 @@ class Init {
 		wp_enqueue_style( wprsync_get_instance()->prefix . '-admin-style', $dir_uri . '/assets/styles/admin' . ( $min ? '.min' : '' ) . '.css', [], $script_version );
 		wp_enqueue_script( wprsync_get_instance()->prefix . '-admin-script', $dir_uri . '/assets/scripts/admin' . ( $min ? '.min' : '' ) . '.js', [ 'jquery' ], $script_version, true );
 
-		wp_enqueue_style( wprsync_get_instance()->prefix . '-admin-bar-style', $dir_uri . 'assets/styles/admin-bar' . ( $min ? '.min' : '' ) . '.css', [], $script_version );
-		wp_enqueue_script( wprsync_get_instance()->prefix . '-admin-bar-script', $dir_uri . 'assets/scripts/admin-bar' . ( $min ? '.min' : '' ) . '.js', [ 'jquery' ], $script_version, true );
 	}
 }

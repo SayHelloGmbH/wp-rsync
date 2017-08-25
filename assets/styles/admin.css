@@ -1,10 +1,17 @@
-.awpp-settings-wrap h1 {
-  margin-bottom: 20px;
+.wprsync-menupage-wrap ._menupage-element {
+  margin-top: 40px;
 }
-.awpp-settings-wrap form {
-  margin-top: 20px;
+.wprsync-menupage-wrap form input[type=text] {
+  width: 100%;
 }
-.awpp-settings-wrap p.error {
+.wprsync-menupage-wrap table.wprsync-table {
+  width: 100%;
+}
+.wprsync-menupage-wrap table.wprsync-table tr td {
+  vertical-align: top;
+  padding: 5px;
+}
+.wprsync-menupage-wrap table.wprsync-table tr td:first-child {
   font-weight: bold;
-  color: red;
+  padding-left: 0;
 }

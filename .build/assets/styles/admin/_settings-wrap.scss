@@ -1,13 +1,23 @@
-.awpp-settings-wrap {
-	h1 {
-		margin-bottom: 20px;
-	}
-	form {
-		margin-top: 20px;
+.wprsync-menupage-wrap {
+	._menupage-element {
+		margin-top: 40px;
 	}
 
-	p.error {
-		font-weight: bold;
-		color: red;
+	form {
+		input[type=text] {
+			width: 100%;
+		}
+	}
+
+	table.wprsync-table {
+		width: 100%;
+		tr td {
+			vertical-align: top;
+			padding: 5px;
+			&:first-child {
+				font-weight: bold;
+				padding-left: 0;
+			}
+		}
 	}
 }
