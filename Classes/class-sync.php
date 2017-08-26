@@ -15,7 +15,6 @@ class Sync {
 
 	public function list_themes() {
 		?>
-		<button onclick="wprsync_do_sync(this,'<?php echo addslashes( ABSPATH ) . 'wp-content/themes/twentyeleven/'; ?>');">Test</button>
 		<div class="about-text _menupage-element">
 			<h2><?php _e( 'Themes', 'wprsync' ); ?></h2>
 			<table class="wprsync-synctable wp-list-table widefat fixed striped">
