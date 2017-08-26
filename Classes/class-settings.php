@@ -28,6 +28,8 @@ class Settings {
 
 	public function run() {
 		add_action( 'admin_menu', [ $this, 'add_menu_page' ] );
+		add_action( 'wprsync_settingspage', [ $this, 'credits' ], 100 );
+		add_action( 'wprsync_menupage', [ $this, 'credits' ], 100 );
 
 		if ( ! wprsync_check_phpexec() ) {
 			add_action( 'admin_notices', [ $this, 'exec_warning' ] );
@@ -39,13 +41,26 @@ class Settings {
 
 		if ( wprsync_check_phpexec() && wprsync_check_rsync() ) {
 			add_action( 'admin_init', [ $this, 'register_settings' ] );
-			add_action( 'wprsync_menupage', [ $this, 'debug_information' ], 100 );
+			add_action( 'wprsync_settingspage', [ $this, 'debug_information' ], 90 );
 		}
 	}
 
 	public function add_menu_page() {
 		add_menu_page( wprsync_get_instance()->name, wprsync_get_instance()->name, $this->capability, $this->menu_page, [ $this, 'register_menu_page' ], 'dashicons-update' );
 		add_submenu_page( $this->menu_page, __( 'Settings', 'wprsync' ), __( 'Settings', 'wprsync' ), $this->capability, $this->menu_page_settings, [ $this, 'register_settings_page' ] );
+	}
+
+	public function credits() {
+		?>
+		<div class="about-text _menupage-element">
+			<p>
+				<?php
+				// translators: This Plugin was created by ...
+				printf( __( 'Created by %s.', 'wprsync' ), '<a href="https://nicomartin.ch" target="_blank">Nico Martin</a> - <a href="https://sayhello.ch" target="_blank">Say Hello GmbH</a>' );
+				?>
+			</p>
+		</div>
+		<?php
 	}
 
 	public function exec_warning() {
@@ -89,19 +104,12 @@ class Settings {
 			<h1><?php echo wprsync_get_instance()->name . ' ' . __( 'Settings', 'wprsync' ); ?></h1>
 			<form method="post" action="options.php">
 				<?php
+				echo '<div class="_menupage-element">';
 				settings_fields( $this->settings_group );
 				do_settings_sections( $this->menu_page_settings );
-				?>
-				<div class="about-text">
-					<p>
-						<?php
-						// translators: This Plugin was created by ...
-						printf( __( 'This Plugin was created by %s.', 'wprsync' ), '<a href="https://nicomartin.ch" target="_blank">Nico Martin</a> - <a href="https://sayhello.ch" target="_blank">Say Hello GmbH</a>' );
-						?>
-					</p>
-				</div>
-				<?php
 				submit_button();
+				echo '</div>';
+				do_action( 'wprsync_settingspage' );
 				?>
 			</form>
 		</div>
@@ -132,7 +140,7 @@ class Settings {
 	}
 
 	public function print_section_info() {
-		$test = $this->test_rsync();
+		$test = wprsync_test_rsync();
 		echo '<div class="notice notice-' . $test['status'] . '"><p>';
 		echo $test['message'];
 		echo '</p></div>';
@@ -180,48 +188,5 @@ class Settings {
 		} else {
 			return $default;
 		}
-	}
-
-	public function test_rsync() {
-
-		$msg = '';
-
-		if ( '' == $this->options['user'] || '' == $this->options['host'] || '' == $this->options['dest'] ) {
-
-			$msg = __( 'Please insert your remote server setings below', 'wprsync' );
-
-			return [
-				'message' => $msg,
-				'status'  => 'warning',
-			];
-
-		} else {
-
-			$connection = $this->options['user'] . '@' . $this->options['host'] . ':' . $this->options['dest'];
-			$exec       = shell_exec( 'rsync --list-only ' . $connection );
-			$stat       = 'error';
-
-			if ( is_null( $exec ) ) {
-
-				$msg .= '<b>' . __( 'connection failed', 'wprsync' ) . '</b>:<br>';
-				$msg .= __( 'Please make sure the remote server configurations are correct and your SSH Key is configured properly', 'wprsync' );
-				$msg .= '<br><br><code>' . $connection . '</code>';
-
-			} elseif ( strpos( $exec, 'wp-config.php' ) === false ) {
-
-				$msg = __( 'Connection was successfull but wp-config.php could not be found. Please define the absolute path to the remote WordPress root folder.', 'wprsync' );
-
-			} else {
-
-				$msg  = __( 'Connection successful!', 'wprsync' );
-				$stat = 'success';
-
-			}
-
-			return [
-				'message' => $msg,
-				'status'  => $stat,
-			];
-		} // End if().
 	}
 }

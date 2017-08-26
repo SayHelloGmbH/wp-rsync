@@ -51,4 +51,8 @@ if ( version_compare( $wp_version, '4.7', '<' ) || version_compare( PHP_VERSION,
 	wprsync_get_instance()->Settings = new nicomartin\WPrsync\Settings();
 	wprsync_get_instance()->Settings->run();
 
+	require_once 'Classes/class-sync.php';
+	wprsync_get_instance()->Sync = new nicomartin\WPrsync\Sync();
+	wprsync_get_instance()->Sync->run();
+
 } // End if().

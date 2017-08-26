@@ -1,0 +1,45 @@
+table.wprsync-synctable {
+	._title {
+		margin-top: 0;
+		margin-bottom: 4px;
+	}
+	._author {
+		font-style: italic;
+		opacity: .8;
+		font-size: .8rem;
+	}
+	tr td._sync {
+		text-align: right;
+		vertical-align: middle;
+	}
+	tr.no-sync td {
+		color: #a8a8a8;
+	}
+}
+
+/*
+table.wprsync-synctable {
+	width: 100%;
+	border-spacing: 0;
+	border-collapse: separate;
+	border-right: 1px solid #ccc;
+	border-top: 1px solid #ccc;
+	p {
+		margin: 0;
+	}
+	._title {
+		margin-top: 0;
+	}
+	tr td {
+		padding: 10px;
+		border-left: 1px solid #ccc;
+		border-bottom: 1px solid #ccc;
+		vertical-align: bottom;
+		background-color: #fff;
+		&._sync {
+			vertical-align: middle;
+			text-align: center;
+		}
+	}
+}
+*/

@@ -1,0 +1,84 @@
+.mfp-zoom-in {
+
+	.mfp-with-anim {
+		@include opacity(0);
+		@include transition();
+		@include transform(scale(0.8));
+	}
+
+	&.mfp-bg {
+		@include opacity(0);
+		@include transition();
+	}
+
+	/* animate in */
+	&.mfp-ready {
+		.mfp-with-anim {
+			@include opacity(1);
+			@include transform(scale(1));
+		}
+		&.mfp-bg {
+			@include opacity(0.8);
+		}
+	}
+
+	/* animate out */
+	&.mfp-removing {
+
+		.mfp-with-anim {
+			@include transform(scale(0.8));
+			@include opacity(0);
+		}
+		&.mfp-bg {
+			@include opacity(0);
+		}
+	}
+}
+
+button.mfp-arrow {
+
+	@include opacity(1);
+	@include single-transition(all);
+
+	&.mfp-arrow-left {
+		left: 20px;
+		@include transform(rotate(90deg));
+	}
+
+	&.mfp-arrow-right {
+		right: 20px;
+		@include transform(rotate(-90deg));
+	}
+
+	&:hover {
+
+		&.mfp-arrow-left {
+			left: 10px;
+		}
+
+		&.mfp-arrow-right {
+			right: 10px;
+		}
+	}
+}
+
+.mfp-white-popup {
+	position: relative;
+	background: #FFF;
+	padding: 20px;
+	width: auto;
+	max-width: 500px;
+	margin: 20px auto;
+	&.loading:after {
+		content: '';
+		display: block;
+		background-color: #fff;
+		opacity:.5;
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		top: 0;
+		z-index: 10;
+	}
+}
