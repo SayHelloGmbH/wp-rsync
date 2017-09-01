@@ -66,6 +66,19 @@ table.wprsync-synctable tr td._sync {
   text-align: right;
   vertical-align: middle;
 }
+table.wprsync-synctable tr td._sync button {
+  padding-left: 2.5em;
+  position: relative;
+}
+table.wprsync-synctable tr td._sync button span.dashicons {
+  position: absolute;
+  left: .3em;
+  top: 55%;
+  -moz-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
 table.wprsync-synctable tr.no-sync td {
   color: #a8a8a8;
 }

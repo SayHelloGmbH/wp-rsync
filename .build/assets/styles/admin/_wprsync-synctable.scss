@@ -14,6 +14,16 @@ table.wprsync-synctable {
 	tr td._sync {
 		text-align: right;
 		vertical-align: middle;
+		button {
+			padding-left: 2.5em;
+			position: relative;
+			span.dashicons {
+				position: absolute;
+				left: .3em;
+				top: 55%;
+				@include translateY(-50%);
+			}
+		}
 	}
 	tr.no-sync td {
 		color: #a8a8a8;
