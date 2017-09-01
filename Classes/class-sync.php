@@ -334,8 +334,7 @@ class Sync {
 
 		if ( empty( $errors ) ) {
 
-			$cmd = $this->get_cmd( $data['path'] );
-			$cmd = str_replace( '-avn', '-av', $cmd );
+			$cmd = $this->get_cmd( $data['path'], false );
 
 			shell_exec( "ssh {$options['user']}@{$options['host']} mkdir -p $remote_path" );
 			$exec = shell_exec( $cmd );
@@ -524,11 +523,17 @@ class Sync {
 		return $results;
 	}
 
-	public function get_cmd( $path ) {
+	public function get_cmd( $path, $dry = true ) {
 
 		$options     = get_option( wprsync_get_instance()->Settings->settings_option );
 		$remote_path = str_replace( ABSPATH, $options['dest'], $path );
 		$connection  = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
+
+		$ex = '-av';
+		if ( $dry ) {
+			$ex = '-avn';
+		}
+
 		if ( ABSPATH == $path ) {
 			$args = [
 				"--exclude 'wp-config.php'",
@@ -544,9 +549,9 @@ class Sync {
 			];
 			$args = implode( ' ', $args );
 
-			return "rsync -avn $args $path $connection";
+			return "rsync $ex $args $path $connection";
 		}
 
-		return "rsync -avn $path $connection";
+		return "rsync $ex $path $connection";
 	}
 }
