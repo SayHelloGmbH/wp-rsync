@@ -4,13 +4,20 @@ namespace nicomartin\WPrsync;
 
 class Sync {
 
+	public $disabled_path = '';
+
 	public function __construct() {
+		$this->disabled_path = [
+			ABSPATH . 'wp-content/plugins/wp-rsync/',
+		];
 	}
 
 	public function run() {
 		add_action( 'wprsync_menupage', [ $this, 'list_themes' ] );
 		add_action( 'wprsync_menupage', [ $this, 'list_plugins' ] );
-		add_action( 'wp_ajax_wprsync_ajax_sync', [ $this, 'sync' ] );
+		add_action( 'wprsync_menupage', [ $this, 'list_uploads' ] );
+		add_action( 'wp_ajax_wprsync_ajax_sync', [ $this, 'sync_window' ] );
+		add_action( 'wp_ajax_wprsync_ajax_run_sync', [ $this, 'do_sync' ] );
 	}
 
 	public function list_themes() {
@@ -30,59 +37,24 @@ class Sync {
 				$themes_folder = get_theme_root() . '/';
 				$themes        = wp_get_themes();
 				foreach ( $themes as $folder => $val ) {
-					$path    = $themes_folder . $folder . '/';
-					$theme   = wp_get_theme( $folder );
-					$enabled = true;
-					if ( ! wprsync_check_rsync() ) {
-						$enabled = false;
-					}
-					?>
-					<tr class="<?php echo( $enabled ? '' : 'no-sync' ); ?>">
-						<td class="_about">
-							<h4 class="_title"><?php echo $theme->get( 'Name' ); ?></h4>
-							<?php
+					$path  = $themes_folder . $folder . '/';
+					$theme = wp_get_theme( $folder );
 
-							$author     = $theme->get( 'Author' );
-							$author_uri = $theme->get( 'AuthorURI' );
-							if ( '' != $author_uri ) {
-								$author = '<a target="_blank" href="' . $author_uri . '">' . $author . '</a>';
-							}
-							echo '<span class="_author">';
-							// translators: theme created by __
-							printf( __( 'By %s', 'wprsync' ), $author );
-							echo '</span>';
-							?>
-						</td>
-						<td class="_version">
-							<?php
-							// translators: Version 1.0.0
-							printf( __( 'Version: %s', 'wprsync' ), $theme->get( 'Version' ) );
-							?>
-						</td>
-						<td class="_latest-sync">
-							<?php
-							$latest_sync = $this->get_latest_sync( $path );
-							if ( ! $latest_sync ) {
-								_e( 'Not yet synced', 'wprsync' );
-							} else {
-								echo date( 'Y.m.d H:i', $latest_sync['date'] );
-								if ( $latest_sync['version'] ) {
-									echo '<br>';
-									// translators: Version 1.0.0
-									printf( __( 'Version: %s', 'wprsync' ), $latest_sync['version'] );
-								}
-							}
-							?>
-						</td>
-						<td class="_sync">
-							<?php if ( $enabled ) { ?>
-								<button class="button" onclick="wprsync_do_sync(this,'<?php echo addslashes( $path ); ?>', '<?php echo $theme->get( 'Version' ); ?>');">
-									<span class="dashicons dashicons-update"></span> <?php _e( 'sync', 'wprsync' ); ?>
-								</button>
-							<?php } ?>
-						</td>
-					</tr>
-					<?php
+					$author     = $theme->get( 'Author' );
+					$author_uri = $theme->get( 'AuthorURI' );
+					if ( '' != $author_uri ) {
+						$author = '<a target="_blank" href="' . $author_uri . '">' . $author . '</a>';
+					}
+
+					$args = [
+						'category' => __( 'Theme', 'wprsync' ),
+						'name'     => $theme->get( 'Name' ),
+						// translators: Who created the theme?
+						'add_info' => sprintf( __( 'By %s', 'wprsync' ), $author ),
+						'version'  => $theme->get( 'Version' ),
+					];
+
+					echo $this->get_rsync_element( $path, $args );
 				} // End foreach().
 				?>
 			</table>
@@ -107,62 +79,24 @@ class Sync {
 				$plugins_folder = ABSPATH . 'wp-content/plugins/';
 				$plugins        = get_plugins();
 				foreach ( $plugins as $file => $val ) {
-					$folder  = explode( '/', $file )[0];
-					$path    = $plugins_folder . $folder . '/';
-					$enabled = true;
-					if ( ! wprsync_check_rsync() ) {
-						$enabled = false;
-					}
-					if ( 'wp-rsync' == $folder ) {
-						$enabled = false;
-					}
-					?>
-					<tr class="<?php echo( $enabled ? '' : 'no-sync' ); ?>">
-						<td class="_about">
-							<h4 class="_title"><?php echo $val['Name']; ?></h4>
-							<?php
+					$folder = explode( '/', $file )[0];
+					$path   = $plugins_folder . $folder . '/';
 
-							$author     = $val['Author'];
-							$author_uri = $val['AuthorURI'];
-							if ( '' != $author_uri ) {
-								$author = '<a target="_blank" href="' . $author_uri . '">' . $author . '</a>';
-							}
-							echo '<span class="_author">';
-							// translators: theme created by __
-							printf( __( 'By %s', 'wprsync' ), $author );
-							echo '</span>';
-							?>
-						</td>
-						<td class="_version">
-							<?php
-							// translators: Version 1.0.0
-							printf( __( 'Version: %s', 'wprsync' ), $val['Version'] );
-							?>
-						</td>
-						<td class="_latest-sync">
-							<?php
-							$latest_sync = $this->get_latest_sync( $path );
-							if ( ! $latest_sync ) {
-								_e( 'Not yet synced', 'wprsync' );
-							} else {
-								echo date( 'Y.m.d H:i', $latest_sync['date'] );
-								if ( $latest_sync['version'] ) {
-									echo '<br>';
-									// translators: Version 1.0.0
-									printf( __( 'Version: %s', 'wprsync' ), $latest_sync['version'] );
-								}
-							}
-							?>
-						</td>
-						<td class="_sync">
-							<?php if ( $enabled ) { ?>
-								<button class="button" onclick="wprsync_do_sync(this,'<?php echo addslashes( $path ); ?>', '<?php echo $val['Version']; ?>');">
-									<span class="dashicons dashicons-update"></span> <?php _e( 'sync', 'wprsync' ); ?>
-								</button>
-							<?php } ?>
-						</td>
-					</tr>
-					<?php
+					$author     = $val['Author'];
+					$author_uri = $val['AuthorURI'];
+					if ( '' != $author_uri ) {
+						$author = '<a target="_blank" href="' . $author_uri . '">' . $author . '</a>';
+					}
+
+					$args = [
+						'category' => __( 'Plugin', 'wprsync' ),
+						'name'     => $val['Name'],
+						// translators: Who created the plugin?
+						'add_info' => sprintf( __( 'By %s', 'wprsync' ), $author ),
+						'version'  => $val['Version'],
+					];
+
+					echo $this->get_rsync_element( $path, $args );
 				} // End foreach().
 				?>
 			</table>
@@ -170,12 +104,69 @@ class Sync {
 		<?php
 	}
 
-	public function sync() {
+	public function list_uploads() {
+		?>
+		<div class="about-text _menupage-element">
+			<h2><?php _e( 'Uploads', 'wprsync' ); ?></h2>
+			<table class="wprsync-synctable wp-list-table widefat fixed striped">
+				<thead>
+				<tr>
+					<th><?php _e( 'Folder', 'wprsync' ); ?></th>
+					<th><?php _e( 'File count', 'wprsync' ); ?></th>
+					<th><?php _e( 'Last sync', 'wprsync' ); ?></th>
+					<th></th>
+				</tr>
+				</thead>
+				<?php
+
+				$dirs     = [];
+				$base_dir = wp_upload_dir()['basedir'];
+				$all_dirs = glob( $base_dir . '/*', GLOB_ONLYDIR );
+				foreach ( $all_dirs as $subdir ) {
+					$the_dir = substr( str_replace( $base_dir, '', $subdir ), 1 );
+					if ( $the_dir > 1000 && $the_dir < 2200 ) {
+						$all_sub_dirs = glob( $subdir . '/*', GLOB_ONLYDIR );
+						foreach ( $all_sub_dirs as $subsubdir ) {
+							$the_sub_dir = substr( str_replace( $base_dir, '', $subsubdir ), 1 );
+							$dirs[]      = $the_sub_dir;
+						}
+					} else {
+						$dirs[] = $the_dir;
+					}
+				}
+
+				foreach ( $dirs as $dir ) {
+
+					$path  = $base_dir . '/' . $dir . '/';
+					$count = '0';
+					//print_r( $this->get_dir_files( $path ) );
+					if ( ! empty( $this->get_dir_files( $path ) ) ) {
+						$count = count( $this->get_dir_files( $path ) );
+					}
+
+					$args = [
+						'category' => __( 'Uploads', 'wprsync' ),
+						'name'     => $dir . '/',
+						'add_info' => '',
+						'version'  => $count,
+					];
+
+					echo $this->get_rsync_element( $path, $args );
+				} // End foreach().
+
+				?>
+			</table>
+		</div>
+		<?php
+	}
+
+	public function sync_window() {
 
 		$data = shortcode_atts( [
-			'path'    => '',
-			'version' => false,
-			'force'   => false,
+			'path'     => '',
+			'version'  => false,
+			'name'     => false,
+			'category' => false,
 		], $_GET );
 
 		$errors       = [];
@@ -203,11 +194,14 @@ class Sync {
 			$path        = $data['path'];
 			$remote_path = str_replace( ABSPATH, $options['dest'], $path );
 			$connection  = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
+			$cmd         = "rsync -avn $path $connection";
+			/*
 			if ( $data['force'] ) {
 				$cmd = "rsync -avP $path $connection";
 			} else {
 				$cmd = "rsync -avPn $path $connection";
 			}
+			*/
 			$exec = shell_exec( $cmd );
 			if ( is_null( $exec ) ) {
 				// translators: shell exec error
@@ -226,58 +220,239 @@ class Sync {
 
 		echo '<div id="wprsync-popup" class="mfp-white-popup">';
 
-		$exec_array   = explode( "\n", $exec );
-		$files        = [];
-		$add_to_files = false;
-		foreach ( $exec_array as $key => $val ) {
-			if ( './' == $val ) {
-				$add_to_files = true;
-				continue;
+		$parsed_exec = $this->parse_rsync_response( $exec );
+
+		$files_conut = count( $parsed_exec['files'] );
+		// translators: x files are/is ready to be synced
+		$title = $data['name'];
+		if ( $data['category'] && '' != $data['category'] ) {
+			$title = $data['category'] . ': ' . $title;
+		}
+
+		$subtitle = str_replace( ABSPATH, '', $data['path'] );
+
+		echo "<h3>$title</h3>";
+		echo "<p class='_subtitle'><small>$subtitle</small></p>";
+
+		if ( 0 == $files_conut ) {
+
+			$message = __( 'All files are already up to date', 'wprsync' );
+			echo '<div class="notice notice-success"><p>' . $message . '</p></div>';
+
+		} else {
+
+			// translators: x file(s) are/is ready to be synced
+			$message = sprintf( _n( '%s File is ready to be synced', '%s Files are ready to be synced', $files_conut, 'wprsync' ), $files_conut );
+			echo '<div id="message" class="notice notice-info"><p>' . $message . '</p></div>';
+
+			echo '<ul class="file-list">';
+			foreach ( $parsed_exec['files'] as $key => $file ) {
+				echo '<li id="' . $key . '">';
+				echo $file['file'];
+				echo '<span class="_add">';
+				echo $file['add'];
+				echo '</span>';
+				echo '</li>';
 			}
-			if ( '' == $val ) {
-				$add_to_files = false;
-				continue;
+			echo '</ul>';
+
+			echo '<button id="sync-now" class="button button-primary">' . __( 'Sync now', 'wprsync' ) . '</button>';
+
+			/*
+			if ( ! $data['force'] && 0 != $files_conut ) {
+				echo '<button id="sync-now" class="button button-primary">' . __( 'Sync now', 'wprsync' ) . '</button>';
 			}
-			if ( $add_to_files && substr( $val, 0, 1 ) != ' ' ) {
-				$files[] = $val;
+			if ( $data['force'] ) {
+				$this->add_latest_sync( $data['path'], $data['version'] );
+				$new_lsync = $this->get_latest_sync( $data['path'] );
+				echo '<span style="display:none;" id="new-latest-sync-date">' . date( 'd.m.Y H:i', $new_lsync['date'] ) . ' </span>';
+				echo '<span style="display:none;" id="new-latest-sync-version">';
+				if ( $new_lsync['version'] ) {
+					// translators: Version 1.0.0
+					printf( __( 'Version: %s', 'wprsync' ), $new_lsync['version'] );
+				}
+				echo '</span>';
+			}
+			*/
+			echo '<p>';
+			echo '<a id="toggle_exec">';
+			echo '<span class="_show">' . __( 'show plain answer', 'wprsync' ) . '</span>';
+			echo '<span class="_hide" style="display: none;">' . __( 'hide plain answer', 'wprsync' ) . '</span>';
+			echo '</a>';
+			echo '</p>';
+
+			echo '<div class="plain-answer" style="display: none;">';
+			echo '<span class="_command"><b>' . __( 'cmd', 'wprsync' ) . ':</b><code>' . $cmd . '</code></span>';
+			echo '<span class="_answer"><b>' . __( 'answer', 'wprsync' ) . ':</b><code>';
+			echo nl2br( $parsed_exec['resp'] );
+			echo '</code></span>';
+			echo '</div>';
+
+			echo '<div class="loading" style="display: none;"></div>';
+		} // End if().
+
+		echo '</div> ';
+		exit();
+	}
+
+	public function do_sync() {
+
+		$data = shortcode_atts( [
+			'path'     => '',
+			'version'  => false,
+			'name'     => false,
+			'category' => false,
+		], $_POST );
+
+		$errors       = [];
+		$data['path'] = stripslashes( $data['path'] );
+
+		// check path
+		if ( ! is_dir( $data['path'] ) || strpos( ABSPATH, $data['path'] ) !== false ) {
+			// translators: check if path is correct
+			$errors[] = sprintf( __( 'The given path "%s" is not a directory or not inside the WordPress installation', 'wprsync' ), $data['path'] );
+		}
+
+		// check system
+		if ( ! wprsync_check_rsync() || ! wprsync_check_phpexec() ) {
+			$errors[] = __( 'Please check your system requirements. php shell_exec has to be enabled and rsync has to be installed.', 'wprsync' );
+		}
+
+		// check data
+		$options = get_option( wprsync_get_instance()->Settings->settings_option );
+		if ( '' == $options['user'] || '' == $options['host'] || '' == $options['dest'] ) {
+			$errors[] = __( 'Please check your Settings. Some seem to be missing.', 'wprsync' );
+		}
+
+		if ( empty( $errors ) ) {
+
+			$path        = $data['path'];
+			$remote_path = str_replace( ABSPATH, $options['dest'], $path );
+			//$remote_path = $options['dest'];
+			$connection = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
+			$cmd        = "rsync -av $path $connection";
+
+			shell_exec( "ssh {$options['user']}@{$options['host']} mkdir -p $remote_path" );
+			$exec = shell_exec( $cmd );
+			if ( is_null( $exec ) ) {
+				// translators: shell exec error
+				$errors[] = sprintf( __( 'The following command caused an undefined error: "%s"', 'wprsync' ), $cmd );
 			}
 		}
 
-		$files_conut = count( $files );
-		if ( ! $data['force'] ) {
-			// translators: X Files are ready to be synced
-			$title = sprintf( _n( '%s File is ready to be synced', '%s Files are ready to be synced', $files_conut, 'wprsync' ), $files_conut );
-		} else {
-			// translators: X Files have been synced
-			$title = sprintf( _n( '%s File has been synced', '%s Files have been synced', $files_conut, 'wprsync' ), $files_conut );
+		if ( ! empty( $errors ) ) {
+
+			$answer = [
+				'type'    => 'error',
+				'message' => implode( '<br>', $errors ),
+			];
+			echo json_encode( $answer );
+			exit();
 		}
-		echo "<h3>$title</h3>";
-		echo '<textarea style="width: 100%; height: 150px;">';
-		foreach ( $files as $file ) {
-			echo "$file\n";
-		}
-		echo '</textarea>';
-		if ( ! $data['force'] && 0 != $files_conut ) {
-			echo '<button id="sync-now" class="button button-primary">' . __( 'Sync now', 'wprsync' ) . '</button>';
-		}
-		if ( $data['force'] ) {
-			$this->add_latest_sync( $data['path'], $data['version'] );
-			$new_lsync = $this->get_latest_sync( $data['path'] );
-			echo '<span style="display:none;" id="new-latest-sync-date">' . date( 'd.m.Y H:i', $new_lsync['date'] ) . ' </span>';
-			echo '<span style="display:none;" id="new-latest-sync-version">';
-			if ( $new_lsync['version'] ) {
-				// translators: Version 1.0.0
-				printf( __( 'Version: %s', 'wprsync' ), $new_lsync['version'] );
-			}
-			echo '</span>';
-		}
-		echo '</div> ';
+
+		$parsed_exec = $this->parse_rsync_response( $exec );
+		$files_conut = count( $parsed_exec['files'] );
+
+		// translators: x file(s) are/is sucessully synced
+		$message = sprintf( _n( '%s File sucessully synced', '%s Files sucessully synced', $files_conut, 'wprsync' ), $files_conut );
+
+		$this->add_latest_sync( $data['path'], $data['version'] );
+		$new_lsync = $this->get_latest_sync( $data['path'] );
+
+		$answer = [
+			'type'        => 'success',
+			'message'     => $message,
+			'plain_exec'  => nl2br( $exec ),
+			'parsed_exec' => $parsed_exec,
+			'cmd'         => $cmd,
+			'latest_sync' => [
+				'date'    => date( 'd.m.Y H:i', $new_lsync['date'] ),
+				'version' => $new_lsync['version'],
+			],
+		];
+		echo json_encode( $answer );
 		exit();
+
 	}
 
 	/**
 	 * Helpers
 	 */
+
+	public function get_rsync_element( $path = '', $args = [] ) {
+
+		if ( '' == $path || strpos( $path, ABSPATH ) === false ) {
+			return '<tr><td colspan="420">' . __( 'Error: Path not correct', 'wprsync' ) . '</td></tr>';
+		}
+
+		$args = shortcode_atts( [
+			'category' => '',
+			'name'     => '',
+			'add_info' => '',
+			'version'  => '',
+		], $args );
+
+		$latest_sync = $this->get_latest_sync( $path );
+
+		$enabled = true;
+		if ( ! wprsync_check_rsync() || in_array( $path, $this->disabled_path ) ) {
+			$enabled = false;
+		}
+
+		$html = '';
+		$html .= '<tr class="' . ( $enabled ? '' : 'no-sync' ) . '">';
+
+		$html .= '<td class="_about">';
+		$html .= '<h4 class="_title">' . $args['name'] . '</h4>';
+		$html .= '<span class="_additional-info">' . $args['add_info'] . '</span>';
+		$html .= '</td>';
+
+		$html .= '<td class="_version">';
+		if ( '' != $args['version'] ) {
+			if ( __( 'Uploads', 'wprsync' ) == $args['category'] ) {
+				$version = $args['version'];
+			} else {
+				// translators: Version 1.0.0
+				$version = sprintf( __( 'Version: %s', 'wprsync' ), $args['version'] );
+			}
+			if ( $latest_sync['version'] && $latest_sync['version'] != $args['version'] ) {
+				$html .= "<b>$version</b>";
+			} else {
+				$html .= $version;
+			}
+		}
+		$html .= '</td>';
+
+		$html .= '<td class="_latest-sync">';
+		if ( ! $latest_sync ) {
+			$html .= __( 'Not yet synced', 'wprsync' );
+		} else {
+			$html .= '<span class="date">' . date( 'Y.m.d H:i', $latest_sync['date'] ) . '</span>';
+			if ( $latest_sync['version'] ) {
+				$html .= '<br>';
+				if ( __( 'Uploads', 'wprsync' ) == $args['category'] ) {
+					// translators: file count 100
+					$html .= sprintf( __( 'File count: %s', 'wprsync' ), '<span class="version">' . $latest_sync['version'] . '</span>' );
+				} else {
+					// translators: Version 1.0.0
+					$html .= sprintf( __( 'Version: %s', 'wprsync' ), '<span class="version">' . $latest_sync['version'] . '</span>' );
+				}
+			}
+		}
+		$html .= '</td>';
+
+		$html .= '<td class="_sync">';
+		if ( $enabled ) {
+			$html .= '<button class="button" onclick="wprsync_do_sync(this,\'' . addslashes( $path ) . '\', \'' . $args['version'] . '\', \'' . $args['name'] . '\', \'' . $args['category'] . '\');">';
+			$html .= '<span class="dashicons dashicons-update"></span> ' . __( 'sync', 'wprsync' );
+			$html .= '</button>';
+		}
+		$html .= '</td>';
+		$html .= '</tr>';
+
+		return $html;
+
+	}
 
 	public function get_latest_sync( $path ) {
 		$syncs = get_option( 'wprsync_latest_syncs' );
@@ -295,5 +470,52 @@ class Sync {
 			'version' => $version,
 		];
 		update_option( 'wprsync_latest_syncs', $syncs );
+	}
+
+	public function parse_rsync_response( $resp ) {
+
+		$resp_array   = explode( "\n", $resp );
+		$files        = [];
+		$add_to_files = false;
+		$i            = 0;
+		foreach ( $resp_array as $key => $val ) {
+			if ( './' == $val ) {
+				$add_to_files = true;
+				continue;
+			}
+			if ( '' == $val ) {
+				$add_to_files = false;
+				continue;
+			}
+			if ( $add_to_files && substr( $val, 0, 1 ) != ' ' ) {
+				$i ++;
+				$files[ md5( $val ) ] = [
+					'file' => $val,
+					'add'  => '',
+				];
+			}
+		}
+
+		return [
+			'files' => $files,
+			'resp'  => $resp,
+		];
+	}
+
+	public function get_dir_files( $dir, $results = [] ) {
+
+		$files = scandir( $dir );
+
+		foreach ( $files as $key => $value ) {
+			$path = realpath( $dir . DIRECTORY_SEPARATOR . $value );
+			if ( ! is_dir( $path ) ) {
+				$results[] = $path;
+			} elseif ( '.' != $value && '..' != $value ) {
+				$this->get_dir_files( $path, $results );
+				$results[] = $path;
+			}
+		}
+
+		return $results;
 	}
 }

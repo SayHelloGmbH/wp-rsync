@@ -64,21 +64,9 @@ button.mfp-arrow {
 
 .mfp-white-popup {
 	position: relative;
-	background: #FFF;
+	background: #f5f5f5;
 	padding: 20px;
 	width: auto;
 	max-width: 500px;
 	margin: 20px auto;
-	&.loading:after {
-		content: '';
-		display: block;
-		background-color: #fff;
-		opacity:.5;
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		top: 0;
-		z-index: 10;
-	}
 }
