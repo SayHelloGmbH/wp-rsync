@@ -13,11 +13,44 @@ class Sync {
 	}
 
 	public function run() {
+		add_action( 'wprsync_menupage', [ $this, 'core' ] );
 		add_action( 'wprsync_menupage', [ $this, 'list_themes' ] );
 		add_action( 'wprsync_menupage', [ $this, 'list_plugins' ] );
 		add_action( 'wprsync_menupage', [ $this, 'list_uploads' ] );
 		add_action( 'wp_ajax_wprsync_ajax_sync', [ $this, 'sync_window' ] );
 		add_action( 'wp_ajax_wprsync_ajax_run_sync', [ $this, 'do_sync' ] );
+	}
+
+	public function core() {
+		?>
+		<div class="about-text _menupage-element">
+			<h2><?php _e( 'WordPress', 'wprsync' ); ?></h2>
+			<table class="wprsync-synctable wp-list-table widefat fixed striped">
+				<thead>
+				<tr>
+					<th><?php _e( 'Modul', 'wprsync' ); ?></th>
+					<th><?php _e( 'Version', 'wprsync' ); ?></th>
+					<th><?php _e( 'Last sync', 'wprsync' ); ?></th>
+					<th></th>
+				</tr>
+				</thead>
+				<?php
+
+				$path = ABSPATH;
+				global $wp_version;
+
+				$args = [
+					'category' => __( 'WordPress', 'wprsync' ),
+					'name'     => __( 'Core', 'wprsync' ),
+					'add_info' => '',
+					'version'  => $wp_version,
+				];
+
+				echo $this->get_rsync_element( $path, $args );
+				?>
+			</table>
+		</div>
+		<?php
 	}
 
 	public function list_themes() {
@@ -173,7 +206,7 @@ class Sync {
 		$data['path'] = stripslashes( $data['path'] );
 
 		// check path
-		if ( ! is_dir( $data['path'] ) || strpos( ABSPATH, $data['path'] ) !== false ) {
+		if ( ! is_dir( $data['path'] ) || ( strpos( ABSPATH, $data['path'] ) !== false && ABSPATH != $data['path'] ) ) {
 			// translators: check if path is correct
 			$errors[] = sprintf( __( 'The given path "%s" is not a directory or not inside the WordPress installation', 'wprsync' ), $data['path'] );
 		}
@@ -191,17 +224,8 @@ class Sync {
 
 		if ( empty( $errors ) ) {
 
-			$path        = $data['path'];
-			$remote_path = str_replace( ABSPATH, $options['dest'], $path );
-			$connection  = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
-			$cmd         = "rsync -avn $path $connection";
-			/*
-			if ( $data['force'] ) {
-				$cmd = "rsync -avP $path $connection";
-			} else {
-				$cmd = "rsync -avPn $path $connection";
-			}
-			*/
+			$cmd = $this->get_cmd( $data['path'] );
+
 			$exec = shell_exec( $cmd );
 			if ( is_null( $exec ) ) {
 				// translators: shell exec error
@@ -258,22 +282,6 @@ class Sync {
 
 			echo '<button id="sync-now" class="button button-primary">' . __( 'Sync now', 'wprsync' ) . '</button>';
 
-			/*
-			if ( ! $data['force'] && 0 != $files_conut ) {
-				echo '<button id="sync-now" class="button button-primary">' . __( 'Sync now', 'wprsync' ) . '</button>';
-			}
-			if ( $data['force'] ) {
-				$this->add_latest_sync( $data['path'], $data['version'] );
-				$new_lsync = $this->get_latest_sync( $data['path'] );
-				echo '<span style="display:none;" id="new-latest-sync-date">' . date( 'd.m.Y H:i', $new_lsync['date'] ) . ' </span>';
-				echo '<span style="display:none;" id="new-latest-sync-version">';
-				if ( $new_lsync['version'] ) {
-					// translators: Version 1.0.0
-					printf( __( 'Version: %s', 'wprsync' ), $new_lsync['version'] );
-				}
-				echo '</span>';
-			}
-			*/
 			echo '<p>';
 			echo '<a id="toggle_exec">';
 			echo '<span class="_show">' . __( 'show plain answer', 'wprsync' ) . '</span>';
@@ -308,7 +316,7 @@ class Sync {
 		$data['path'] = stripslashes( $data['path'] );
 
 		// check path
-		if ( ! is_dir( $data['path'] ) || strpos( ABSPATH, $data['path'] ) !== false ) {
+		if ( ! is_dir( $data['path'] ) || ( strpos( ABSPATH, $data['path'] ) !== false && ABSPATH != $data['path'] ) ) {
 			// translators: check if path is correct
 			$errors[] = sprintf( __( 'The given path "%s" is not a directory or not inside the WordPress installation', 'wprsync' ), $data['path'] );
 		}
@@ -326,11 +334,8 @@ class Sync {
 
 		if ( empty( $errors ) ) {
 
-			$path        = $data['path'];
-			$remote_path = str_replace( ABSPATH, $options['dest'], $path );
-			//$remote_path = $options['dest'];
-			$connection = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
-			$cmd        = "rsync -av $path $connection";
+			$cmd = $this->get_cmd( $data['path'] );
+			$cmd = str_replace( '-avn', '-av', $cmd );
 
 			shell_exec( "ssh {$options['user']}@{$options['host']} mkdir -p $remote_path" );
 			$exec = shell_exec( $cmd );
@@ -517,5 +522,31 @@ class Sync {
 		}
 
 		return $results;
+	}
+
+	public function get_cmd( $path ) {
+
+		$options     = get_option( wprsync_get_instance()->Settings->settings_option );
+		$remote_path = str_replace( ABSPATH, $options['dest'], $path );
+		$connection  = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
+		if ( ABSPATH == $path ) {
+			$args = [
+				"--exclude 'wp-config.php'",
+				"--include 'index.php'",
+				"--include 'license.txt'",
+				"--include 'readme.html'",
+				"--include 'wp-*.php'",
+				"--include 'index.php'",
+				"--include 'xmlrpc.php'",
+				"--include 'wp-admin/***'",
+				"--include 'wp-includes/***'",
+				"--exclude '*'",
+			];
+			$args = implode( ' ', $args );
+
+			return "rsync -avn $args $path $connection";
+		}
+
+		return "rsync -avn $path $connection";
 	}
 }
