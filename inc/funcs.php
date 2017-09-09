@@ -40,7 +40,7 @@ function wprsync_test_rsync() {
 
 	$options = get_option( wprsync_get_instance()->Settings->settings_option );
 
-	if ( '' == $options['dest'] ) {
+	if ( '' == $options['user'] || '' == $options['host'] || '' == $options['dest'] ) {
 
 		$msg = __( 'Please insert your remote server setings below', 'wprsync' );
 
@@ -51,9 +51,13 @@ function wprsync_test_rsync() {
 
 	} else {
 
-		$connection = $options['user'] . '@' . $options['host'] . ':' . $options['dest'];
-		$exec       = shell_exec( 'rsync --list-only ' . $connection );
-		$stat       = 'error';
+		if ( 'local' == $options['user'] || 'local' == $options['host'] ) {
+			$connection = $options['dest'];
+		} else {
+			$connection = $options['user'] . '@' . $options['host'] . ':' . $options['dest'];
+		}
+		$exec = shell_exec( 'rsync --list-only ' . $connection );
+		$stat = 'error';
 
 		if ( is_null( $exec ) ) {
 
