@@ -82,3 +82,30 @@ function wprsync_test_rsync() {
 		];
 	} // End if().
 }
+
+function wprsync_get_uploads_subfolders() {
+
+	$folders  = [];
+	$base_dir = wp_upload_dir()['basedir'];
+	$all_dirs = glob( $base_dir . '/*', GLOB_ONLYDIR );
+	foreach ( $all_dirs as $subdir ) {
+		$the_dir = substr( str_replace( $base_dir, '', $subdir ), 1 );
+		if ( $the_dir > 1000 && $the_dir < 2200 ) {
+			$all_sub_dirs = glob( $subdir . '/*', GLOB_ONLYDIR );
+			foreach ( $all_sub_dirs as $subsubdir ) {
+				$the_sub_dir = substr( str_replace( $base_dir, '', $subsubdir ), 1 );
+				$folders[]   = [
+					'name' => $the_sub_dir . '/',
+					'path' => $base_dir . '/' . $the_sub_dir . '/',
+				];
+			}
+		} else {
+			$folders[] = [
+				'name' => $the_dir . '/',
+				'path' => $base_dir . '/' . $the_dir . '/',
+			];
+		}
+	}
+
+	return $folders;
+}

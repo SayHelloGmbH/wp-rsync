@@ -10,6 +10,13 @@ class Sync {
 		$this->disabled_path = [
 			ABSPATH . 'wp-content/plugins/wp-rsync/',
 		];
+		$options             = get_option( wprsync_get_instance()->Settings->settings_option );
+		if ( isset( $options['exclude_uploads'] ) ) {
+			foreach ( $options['exclude_uploads'] as $path => $val ) {
+				$this->disabled_path[] = $path;
+			}
+		}
+
 	}
 
 	public function run() {
@@ -152,39 +159,24 @@ class Sync {
 				</thead>
 				<?php
 
-				$dirs     = [];
-				$base_dir = wp_upload_dir()['basedir'];
-				$all_dirs = glob( $base_dir . '/*', GLOB_ONLYDIR );
-				foreach ( $all_dirs as $subdir ) {
-					$the_dir = substr( str_replace( $base_dir, '', $subdir ), 1 );
-					if ( $the_dir > 1000 && $the_dir < 2200 ) {
-						$all_sub_dirs = glob( $subdir . '/*', GLOB_ONLYDIR );
-						foreach ( $all_sub_dirs as $subsubdir ) {
-							$the_sub_dir = substr( str_replace( $base_dir, '', $subsubdir ), 1 );
-							$dirs[]      = $the_sub_dir;
-						}
-					} else {
-						$dirs[] = $the_dir;
-					}
-				}
+				$folders = wprsync_get_uploads_subfolders();
 
-				foreach ( $dirs as $dir ) {
+				foreach ( $folders as $key => $folder ) {
 
-					$path  = $base_dir . '/' . $dir . '/';
 					$count = '0';
 					//print_r( $this->get_dir_files( $path ) );
-					if ( ! empty( $this->get_dir_files( $path ) ) ) {
-						$count = count( $this->get_dir_files( $path ) );
+					if ( ! empty( $this->get_dir_files( $folder['path'] ) ) ) {
+						$count = count( $this->get_dir_files( $folder['path'] ) );
 					}
 
 					$args = [
 						'category' => __( 'Uploads', 'wprsync' ),
-						'name'     => $dir . '/',
+						'name'     => $folder['name'],
 						'add_info' => '',
 						'version'  => $count,
 					];
 
-					echo $this->get_rsync_element( $path, $args );
+					echo $this->get_rsync_element( $folder['path'], $args );
 				} // End foreach().
 
 				?>

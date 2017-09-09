@@ -119,10 +119,16 @@ class Settings {
 	public function register_settings() {
 		$section = $this->settings_section;
 		register_setting( $this->settings_group, $this->settings_option, [ $this, 'sanitize' ] );
+
 		add_settings_section( $section, __( 'remote server configuration', 'wprsync' ), [ $this, 'print_section_info' ], $this->menu_page_settings );
 		add_settings_field( 'user', __( 'User', 'wprsync' ), [ $this, 'settings_user_callback' ], $this->menu_page_settings, $section );
 		add_settings_field( 'host', __( 'Host', 'wprsync' ), [ $this, 'settings_host_callback' ], $this->menu_page_settings, $section );
 		add_settings_field( 'dest', __( 'Path to WP root', 'wprsync' ), [ $this, 'settings_dest_callback' ], $this->menu_page_settings, $section );
+
+		add_settings_section( $section . '-exclude', __( 'exclude folders', 'wprsync' ), [ $this, 'print_section_info_exclude' ], $this->menu_page_settings );
+		add_settings_field( 'uploads', __( 'wp-content/uploads/', 'wprsync' ), [ $this, 'settings_exclude_uploads_callback' ], $this->menu_page_settings, $section . '-exclude' );
+		//add_settings_field( 'host', __( 'Host', 'wprsync' ), [ $this, 'settings_host_callback' ], $this->menu_page_settings, $section );
+		//add_settings_field( 'dest', __( 'Path to WP root', 'wprsync' ), [ $this, 'settings_dest_callback' ], $this->menu_page_settings, $section );
 	}
 
 	public function sanitize( $input ) {
@@ -143,8 +149,19 @@ class Settings {
 		$test = wprsync_test_rsync();
 		echo '<div class="notice notice-' . $test['status'] . '"><p>';
 		echo $test['message'];
+		//echo '<pre>';
+		//print_r( $this->options );
+		//echo '</pre>';
 		echo '</p></div>';
 	}
+
+	public function print_section_info_exclude() {
+
+	}
+
+	/**
+	 * Settings fields
+	 */
 
 	public function settings_user_callback() {
 		$key = 'user';
@@ -164,6 +181,25 @@ class Settings {
 		printf( '<input type="text" name="%1$s[%2$s]" id="%2$s" value="%3$s" placeholder="' . ABSPATH . '" />', $this->settings_option, $key, $val );
 	}
 
+	public function settings_exclude_uploads_callback() {
+		$folders                 = wprsync_get_uploads_subfolders();
+		$elements                = [];
+		$excluded_upload_folders = $this->options['exclude_uploads'];
+		foreach ( $folders as $folder ) {
+			$checked = false;
+			if ( isset( $excluded_upload_folders[ $folder['path'] ] ) ) {
+				$checked = true;
+			}
+
+			$elements[] = '<label><input type="checkbox" name="' . $this->settings_option . '[exclude_uploads][' . $folder['path'] . ']" ' . ( $checked ? 'checked' : '' ) . ' /> ' . $folder['name'] . '</label>';
+		}
+		echo implode( '<br>', $elements );
+	}
+
+	/**
+	 *
+	 */
+
 	public function debug_information() {
 		?>
 		<div class="_debug _menupage-element">
@@ -177,7 +213,6 @@ class Settings {
 		</div>
 		<?php
 	}
-
 
 	/**
 	 * Helpers
