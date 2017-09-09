@@ -218,8 +218,8 @@ class Sync {
 
 		// check data
 		$options = get_option( wprsync_get_instance()->Settings->settings_option );
-		if ( '' == $options['user'] || '' == $options['host'] || '' == $options['dest'] ) {
-			$errors[] = __( 'Please check your Settings. Some seem to be missing.', 'wprsync' );
+		if ( '' == $options['dest'] ) {
+			$errors[] = __( 'Please add a Destination.', 'wprsync' );
 		}
 
 		if ( empty( $errors ) ) {
@@ -328,8 +328,8 @@ class Sync {
 
 		// check data
 		$options = get_option( wprsync_get_instance()->Settings->settings_option );
-		if ( '' == $options['user'] || '' == $options['host'] || '' == $options['dest'] ) {
-			$errors[] = __( 'Please check your Settings. Some seem to be missing.', 'wprsync' );
+		if ( '' == $options['dest'] ) {
+			$errors[] = __( 'Please add a Destination', 'wprsync' );
 		}
 
 		if ( empty( $errors ) ) {
@@ -527,8 +527,11 @@ class Sync {
 
 		$options     = get_option( wprsync_get_instance()->Settings->settings_option );
 		$remote_path = str_replace( ABSPATH, $options['dest'], $path );
-		$connection  = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
-
+		if ( '' == $options['user'] || '' == $options['host'] ) {
+			$connection = $remote_path;
+		} else {
+			$connection = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
+		}
 		$ex = '-av';
 		if ( $dry ) {
 			$ex = '-avn';
