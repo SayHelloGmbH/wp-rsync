@@ -336,7 +336,11 @@ class Sync {
 
 			$cmd = $this->get_cmd( $data['path'], false );
 
-			shell_exec( "ssh {$options['user']}@{$options['host']} mkdir -p $remote_path" );
+			if ( 'local' == $options['user'] || 'local' == $options['host'] ) {
+				shell_exec( "mkdir -p $remote_path" );
+			} else {
+				shell_exec( "ssh {$options['user']}@{$options['host']} mkdir -p $remote_path" );
+			}
 			$exec = shell_exec( $cmd );
 			if ( is_null( $exec ) ) {
 				// translators: shell exec error
@@ -527,7 +531,7 @@ class Sync {
 
 		$options     = get_option( wprsync_get_instance()->Settings->settings_option );
 		$remote_path = str_replace( ABSPATH, $options['dest'], $path );
-		if ( '' == $options['user'] || ! isset( $options['user'] ) || '' == $options['host'] || ! isset( $options['host'] ) ) {
+		if ( 'local' == $options['user'] || 'local' == $options['host'] ) {
 			$connection = $remote_path;
 		} else {
 			$connection = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
