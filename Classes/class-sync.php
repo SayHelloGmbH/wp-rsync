@@ -527,7 +527,7 @@ class Sync {
 
 		$options     = get_option( wprsync_get_instance()->Settings->settings_option );
 		$remote_path = str_replace( ABSPATH, $options['dest'], $path );
-		if ( '' == $options['user'] || '' == $options['host'] ) {
+		if ( '' == $options['user'] || ! isset( $options['user'] ) || '' == $options['host'] || ! isset( $options['host'] ) ) {
 			$connection = $remote_path;
 		} else {
 			$connection = $options['user'] . '@' . $options['host'] . ':' . $remote_path;
