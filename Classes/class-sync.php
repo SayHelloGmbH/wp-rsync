@@ -16,7 +16,11 @@ class Sync {
 				$this->disabled_path[] = $path;
 			}
 		}
-
+		if ( isset( $options['exclude_folders'] ) ) {
+			foreach ( $options['exclude_folders'] as $path => $val ) {
+				$this->disabled_path[] = $path;
+			}
+		}
 	}
 
 	public function run() {
@@ -521,6 +525,10 @@ class Sync {
 
 	public function get_cmd( $path, $dry = true ) {
 
+		if ( in_array( $path, $this->disabled_path ) ) {
+			return false;
+		}
+
 		$options     = get_option( wprsync_get_instance()->Settings->settings_option );
 		$remote_path = str_replace( ABSPATH, $options['dest'], $path );
 		if ( 'local' == $options['user'] || 'local' == $options['host'] ) {
@@ -533,8 +541,10 @@ class Sync {
 			$ex = '-avn';
 		}
 
+		$args = [];
+
 		if ( ABSPATH == $path ) {
-			$args = [
+			$args = array_merge( [
 				"--exclude 'wp-config.php'",
 				"--include 'index.php'",
 				"--include 'license.txt'",
@@ -545,7 +555,18 @@ class Sync {
 				"--include 'wp-admin/***'",
 				"--include 'wp-includes/***'",
 				"--exclude '*'",
-			];
+			], $args );
+		} else {
+			foreach ( $this->disabled_path as $disabled_path ) {
+				$path_length = strlen( $path );
+				if ( substr( $disabled_path, 0, $path_length ) == $path ) {
+					$exclude = str_replace( $path, '', $disabled_path );
+					$args[]  = "--exclude '{$exclude}***'";
+				}
+			}
+		}
+
+		if ( ! empty( $args ) ) {
 			$args = implode( ' ', $args );
 
 			return "rsync $ex $args $path $connection";

@@ -127,8 +127,7 @@ class Settings {
 
 		add_settings_section( $section . '-exclude', __( 'exclude folders', 'wprsync' ), [ $this, 'print_section_info_exclude' ], $this->menu_page_settings );
 		add_settings_field( 'uploads', __( 'wp-content/uploads/', 'wprsync' ), [ $this, 'settings_exclude_uploads_callback' ], $this->menu_page_settings, $section . '-exclude' );
-		//add_settings_field( 'host', __( 'Host', 'wprsync' ), [ $this, 'settings_host_callback' ], $this->menu_page_settings, $section );
-		//add_settings_field( 'dest', __( 'Path to WP root', 'wprsync' ), [ $this, 'settings_dest_callback' ], $this->menu_page_settings, $section );
+		add_settings_field( 'additional_folders', __( 'additional folders', 'wprsync' ), [ $this, 'settings_exclude_folders_callback' ], $this->menu_page_settings, $section . '-exclude' );
 	}
 
 	public function sanitize( $input ) {
@@ -139,6 +138,32 @@ class Settings {
 					$val = $val . '/';
 				}
 				$input[ $key ] = $val;
+			}
+			if ( 'exclude_folders' == $key ) {
+				$input[ $key ] = [];
+				$paths         = explode( "\n", $val );
+				foreach ( $paths as $path ) {
+					$path = preg_replace( "/\r|\n/", '', $path );
+					$path = str_replace( ' ', '-', $path );
+
+					if ( '' == $path ) {
+						continue;
+					}
+					if ( substr( $path, 0, 1 ) != '/' ) {
+						$path = '/' . $path;
+					}
+					if ( substr( $path, - 1 ) != '/' ) {
+						$path = $path . '/';
+					}
+					if ( strpos( $path, ABSPATH ) === false ) {
+						$abspath = substr( ABSPATH, 0, - 1 );
+						$path    = $abspath . $path;
+					}
+
+					if ( is_dir( $path ) ) {
+						$input[ $key ][ $path ] = true;
+					}
+				}
 			}
 		}
 
@@ -194,6 +219,21 @@ class Settings {
 			$elements[] = '<label><input type="checkbox" name="' . $this->settings_option . '[exclude_uploads][' . $folder['path'] . ']" ' . ( $checked ? 'checked' : '' ) . ' /> ' . $folder['name'] . '</label>';
 		}
 		echo implode( '<br>', $elements );
+	}
+
+	public function settings_exclude_folders_callback() {
+		$content = '';
+		if ( isset( $this->options['exclude_folders'] ) ) {
+			$elements = [];
+			foreach ( $this->options['exclude_folders'] as $path => $val ) {
+				$elements[] = $path;
+			}
+			$content = implode( "\n", $elements );
+		}
+		echo '<textarea style="width: 100%; height: 200px;" name="' . $this->settings_option . '[exclude_folders]">' . $content . '</textarea>';
+		// translators: Has to be a folder inside ABSPATH
+		echo '<p><small>' . sprintf( __( 'Has to be a folder inside %s', 'wprsync' ), '<code style="font-size: smaller">' . ABSPATH . '</code>' ) . '</small></p>';
+		echo '<p><small>' . __( 'Could be a module (theme, plugin, ..) or a folder inside a module.', 'wprsync' ) . '</small></p>';
 	}
 
 	/**
