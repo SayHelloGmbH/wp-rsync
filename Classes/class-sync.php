@@ -5,6 +5,7 @@ namespace nicomartin\WPrsync;
 class Sync {
 
 	public $disabled_path = '';
+	public $excluded = [];
 
 	public function __construct() {
 		$this->disabled_path = [
@@ -21,6 +22,7 @@ class Sync {
 				$this->disabled_path[] = $path;
 			}
 		}
+		$this->excluded = [];
 	}
 
 	public function run() {
@@ -30,6 +32,7 @@ class Sync {
 		add_action( 'wprsync_menupage', [ $this, 'list_uploads' ] );
 		add_action( 'wp_ajax_wprsync_ajax_sync', [ $this, 'sync_window' ] );
 		add_action( 'wp_ajax_wprsync_ajax_run_sync', [ $this, 'do_sync' ] );
+		add_filter( 'wprsync_excludes', [ $this, 'exclude_build_files' ] );
 	}
 
 	public function core() {
@@ -379,6 +382,21 @@ class Sync {
 
 	}
 
+	public function exclude_build_files( $excludes ) {
+		$new_excludes = [
+			'node_modules/***',
+			'.*/***',
+			'.gitignore',
+			'gulpfile.js',
+			'composer.json',
+			'composer.lock',
+			'package.json',
+			'package-lock.json',
+		];
+
+		return array_merge( $excludes, $new_excludes );
+	}
+
 	/**
 	 * Helpers
 	 */
@@ -564,6 +582,11 @@ class Sync {
 					$args[]  = "--exclude '{$exclude}***'";
 				}
 			}
+		}
+
+		$excludes = apply_filters( 'wprsync_excludes', $this->excluded );
+		foreach ( $excludes as $exclude ) {
+			$args[] = "--exclude '{$exclude}'";
 		}
 
 		if ( ! empty( $args ) ) {
