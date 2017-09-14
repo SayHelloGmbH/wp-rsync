@@ -392,6 +392,7 @@ class Sync {
 			'composer.lock',
 			'package.json',
 			'package-lock.json',
+			'error_log',
 		];
 
 		return array_merge( $excludes, $new_excludes );
