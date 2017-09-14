@@ -4,6 +4,7 @@ namespace nicomartin\WPrsync;
 
 class Sync {
 
+
 	public $disabled_path = '';
 	public $excluded = [];
 
