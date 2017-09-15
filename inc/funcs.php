@@ -40,9 +40,7 @@ function wprsync_test_rsync() {
 
 	$options = get_option( wprsync_get_instance()->Settings->settings_option );
 
-	print_r( $options );
-
-	if ( '' == $options['user'] || '' == $options['host'] || '' == $options['dest'] ) {
+	if ( ! is_array( $options ) || empty( $options ) || '' == $options['user'] || '' == $options['host'] || '' == $options['dest'] ) {
 
 		$msg = __( 'Please insert your remote server setings below', 'wprsync' );
 

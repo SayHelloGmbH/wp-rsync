@@ -246,7 +246,7 @@ class Settings {
 			<h2><?php _e( 'Debug information', 'wprsync' ); ?></h2>
 			<table class="wprsync-table">
 				<tr>
-					<td>Version</td>
+					<td><?php _e( 'Plugin Version', 'wprsync' ); ?></td>
 					<td><?php echo wprsync_get_instance()->version; ?></td>
 				</tr>
 				<tr>
