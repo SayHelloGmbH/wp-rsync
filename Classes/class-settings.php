@@ -209,7 +209,10 @@ class Settings {
 	public function settings_exclude_uploads_callback() {
 		$folders                 = wprsync_get_uploads_subfolders();
 		$elements                = [];
-		$excluded_upload_folders = $this->options['exclude_uploads'];
+		$excluded_upload_folders = [];
+		if ( ! isset( $this->options['exclude_uploads'] ) ) {
+			$excluded_upload_folders = $this->options['exclude_uploads'];
+		}
 		foreach ( $folders as $folder ) {
 			$checked = false;
 			if ( isset( $excluded_upload_folders[ $folder['path'] ] ) ) {
