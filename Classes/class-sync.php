@@ -263,19 +263,6 @@ class Sync {
 			$message = __( 'All files are already up to date', 'wprsync' );
 			echo '<div class="notice notice-success"><p>' . $message . '</p></div>';
 			//echo '<pre>' . print_r( $parsed_exec ) . '</pre>';
-			echo '<p>';
-			echo '<a id="toggle_exec">';
-			echo '<span class="_show">' . __( 'show plain answer', 'wprsync' ) . '</span>';
-			echo '<span class="_hide" style="display: none;">' . __( 'hide plain answer', 'wprsync' ) . '</span>';
-			echo '</a>';
-			echo '</p>';
-
-			echo '<div class="plain-answer" style="display: none;">';
-			echo '<span class="_command"><b>' . __( 'cmd', 'wprsync' ) . ':</b><code>' . $cmd . '</code></span>';
-			echo '<span class="_answer"><b>' . __( 'answer', 'wprsync' ) . ':</b><code>';
-			echo nl2br( $parsed_exec['resp'] );
-			echo '</code></span>';
-			echo '</div>';
 
 		} else {
 
