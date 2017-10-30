@@ -262,6 +262,20 @@ class Sync {
 
 			$message = __( 'All files are already up to date', 'wprsync' );
 			echo '<div class="notice notice-success"><p>' . $message . '</p></div>';
+			//echo '<pre>' . print_r( $parsed_exec ) . '</pre>';
+			echo '<p>';
+			echo '<a id="toggle_exec">';
+			echo '<span class="_show">' . __( 'show plain answer', 'wprsync' ) . '</span>';
+			echo '<span class="_hide" style="display: none;">' . __( 'hide plain answer', 'wprsync' ) . '</span>';
+			echo '</a>';
+			echo '</p>';
+
+			echo '<div class="plain-answer" style="display: none;">';
+			echo '<span class="_command"><b>' . __( 'cmd', 'wprsync' ) . ':</b><code>' . $cmd . '</code></span>';
+			echo '<span class="_answer"><b>' . __( 'answer', 'wprsync' ) . ':</b><code>';
+			echo nl2br( $parsed_exec['resp'] );
+			echo '</code></span>';
+			echo '</div>';
 
 		} else {
 
@@ -492,19 +506,34 @@ class Sync {
 
 	public function parse_rsync_response( $resp ) {
 
-		$resp_array   = explode( "\n", $resp );
+		$resp_array = explode( "\n", $resp );
+		//return $resp_array;
 		$files        = [];
-		$add_to_files = false;
+		$add_to_files = true;
 		$i            = 0;
 		foreach ( $resp_array as $key => $val ) {
-			if ( './' == $val ) {
+
+			$poss_ext = [ 'php', 'html' ];
+			$poss_ext = array_merge( $poss_ext, [ 'scss', 'css', 'js', 'json' ] );
+			$poss_ext = array_merge( $poss_ext, [ 'svg', 'png', 'gif', 'jpg', 'jpeg', 'webp' ] );
+			$poss_ext = array_merge( $poss_ext, [ 'woff', 'woff2', 'eot', 'otf', 'ttf' ] );
+			$poss_ext = array_merge( $poss_ext, [ 'mp4', 'mov', 'avi', 'wmv', 'flv', 'webm' ] );
+			$poss_ext = array_merge( $poss_ext, [ 'mp3', 'ogg', 'wma' ] );
+			$poss_ext = apply_filters( 'wprsync_possible_file_extensions', $poss_ext );
+
+			$ext = strtolower( end( explode( '.', $val ) ) );
+			if ( ! in_array( $ext, $poss_ext ) ) {
+				continue;
+			}
+
+			/*if ( './' == $val ) {
 				$add_to_files = true;
 				continue;
 			}
 			if ( '' == $val ) {
 				$add_to_files = false;
 				continue;
-			}
+			}*/
 			if ( $add_to_files && substr( $val, 0, 1 ) != ' ' ) {
 				$i ++;
 				$files[ md5( $val ) ] = [
