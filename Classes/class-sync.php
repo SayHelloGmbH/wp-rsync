@@ -601,6 +601,11 @@ class Sync {
 			$args[] = "--exclude '{$exclude}'";
 		}
 
+		$includes = apply_filters( 'wprsync_includes', [] );
+		foreach ( $includes as $include ) {
+			$args[] = "--include '{$include}'";
+		}
+
 		if ( ! empty( $args ) ) {
 			$args = implode( ' ', $args );
 
