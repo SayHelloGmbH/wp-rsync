@@ -27,7 +27,11 @@ class Settings {
 	}
 
 	public function run() {
-		add_action( 'admin_menu', [ $this, 'add_menu_page' ] );
+		if ( is_multisite() ) {
+			add_action( 'network_admin_menu', [ $this, 'add_menu_page' ] );
+		} else {
+			add_action( 'admin_menu', [ $this, 'add_menu_page' ] );
+		}
 		add_action( 'wprsync_settingspage', [ $this, 'credits' ], 100 );
 		add_action( 'wprsync_menupage', [ $this, 'credits' ], 100 );
 
