@@ -36,7 +36,7 @@ class Init {
 		];
 
 		if ( ! in_array( $current_screen_base, $enqueue_on ) ) {
-			return;
+			//return;
 		}
 
 		$script_version = wprsync_get_instance()->version;
