@@ -106,7 +106,7 @@ class Settings {
 		?>
 		<div class="wrap wprsync-menupage-wrap">
 			<h1><?php echo wprsync_get_instance()->name . ' ' . __( 'Settings', 'wprsync' ); ?></h1>
-			<form method="post" action="options.php">
+			<form method="post" action="<?php echo trailingslashit( get_admin_url() ); ?>options.php">
 				<?php
 				echo '<div class="_menupage-element">';
 				settings_fields( $this->settings_group );
