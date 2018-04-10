@@ -462,7 +462,7 @@ class Sync {
 
 		$html .= '<td class="_sync">';
 		if ( $enabled ) {
-			$html .= '<button class="button" onclick="wprsync_do_sync(this,\'' . addslashes( $path ) . '\', \'' . $args['version'] . '\', \'' . $args['name'] . '\', \'' . $args['category'] . '\');">';
+			$html .= '<button class="button" onclick="wprsync_do_sync(this,\'' . addslashes( $path ) . '\', \'' . $args['version'] . '\', \'' . addslashes( $args['name'] ) . '\', \'' . $args['category'] . '\');">';
 			$html .= '<span class="dashicons dashicons-update"></span> ' . __( 'sync', 'wprsync' );
 			$html .= '</button>';
 		}
