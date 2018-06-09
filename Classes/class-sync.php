@@ -284,21 +284,21 @@ class Sync {
 			echo '<button id="sync-now" class="button button-primary">' . __( 'Sync now', 'wprsync' ) . '</button>';
 
 			echo '<p>';
-			echo '<a id="toggle_exec">';
-			echo '<span class="_show">' . __( 'show plain answer', 'wprsync' ) . '</span>';
-			echo '<span class="_hide" style="display: none;">' . __( 'hide plain answer', 'wprsync' ) . '</span>';
-			echo '</a>';
-			echo '</p>';
+		}
+		echo '<a id="toggle_exec">';
+		echo '<span class="_show">' . __( 'show plain answer', 'wprsync' ) . '</span>';
+		echo '<span class="_hide" style="display: none;">' . __( 'hide plain answer', 'wprsync' ) . '</span>';
+		echo '</a>';
+		echo '</p>';
 
-			echo '<div class="plain-answer" style="display: none;">';
-			echo '<span class="_command"><b>' . __( 'cmd', 'wprsync' ) . ':</b><code>' . $cmd . '</code></span>';
-			echo '<span class="_answer"><b>' . __( 'answer', 'wprsync' ) . ':</b><code>';
-			echo nl2br( $parsed_exec['resp'] );
-			echo '</code></span>';
-			echo '</div>';
+		echo '<div class="plain-answer" style="display: none;">';
+		echo '<span class="_command"><b>' . __( 'cmd', 'wprsync' ) . ':</b><code>' . $cmd . '</code></span>';
+		echo '<span class="_answer"><b>' . __( 'answer', 'wprsync' ) . ':</b><code>';
+		echo nl2br( $parsed_exec['resp'] );
+		echo '</code></span>';
+		echo '</div>';
 
-			echo '<div class="loading" style="display: none;"></div>';
-		} // End if().
+		echo '<div class="loading" style="display: none;"></div>';
 
 		echo '</div> ';
 		exit();

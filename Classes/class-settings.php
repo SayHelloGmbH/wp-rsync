@@ -8,7 +8,9 @@ class Settings {
 	public $icon = '';
 	public $menu_page = '';
 	public $menu_page_settings = '';
+	public $settings_option = '';
 	public $settings_group = '';
+	public $settings_section = '';
 	public $settings_key = '';
 	public $adminbar_id = '';
 
