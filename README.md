@@ -2,15 +2,13 @@
 
 ## Description
 This plugin lets you push Plugins Themes and Medias via rsync
-## Changelog
 
-### 0.0.1
-* Initial version from 2017
+## Getting started
+This Plugin should be installed on the staging server and please make sure the stanging server can log in on the live server over SSH (SSH Key from the staging has to be installed on the live server).
+
+Then on the settings page of the plugin you can enter the credentials of the live server and test it on saving them.
+
+Afterwards you can sync the core, plugins and themes whith two clicks :D.
 
 ## Contributors
-* Nico Martin | [nicomartin.ch](https://www.nicomartin.ch) | [@nic_o_martin](https://twitter.com/nic_o_martin)
-
-## License
-Use this code freely, widely and for free. Provision of this code provides and implies no guarantee.
-
-Please respect the GPL v3 licence, which is available via [http://www.gnu.org/licenses/gpl-3.0.html](http://www.gnu.org/licenses/gpl-3.0.html)
+* [Nico Martin](https://github.com/nico-martin)
