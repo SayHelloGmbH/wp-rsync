@@ -596,6 +596,8 @@ class Sync {
 			}
 		}
 
+		$args[] = '-e "ssh -p ' . intval( $options['port'] ) . '"';
+
 		if ( in_array( 'port', $options ) ) {
 			$port = intval( $options['port'] );
 			if ( $port && 22 != $port && 0 != $port ) {

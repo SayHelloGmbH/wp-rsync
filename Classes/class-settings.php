@@ -176,7 +176,7 @@ class Settings {
 					}
 				}
 			}
-		}
+		} // End foreach().
 
 		return $input;
 	}
