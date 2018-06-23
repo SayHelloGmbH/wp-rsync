@@ -596,6 +596,13 @@ class Sync {
 			}
 		}
 
+		if ( in_array( 'port', $options ) ) {
+			$port = intval( $options['port'] );
+			if ( $port && 22 != $port && 0 != $port ) {
+				$args[] = '-e "ssh -p ' . $port . '"';
+			}
+		}
+
 		$excludes = apply_filters( 'wprsync_excludes', $this->excluded );
 		foreach ( $excludes as $exclude ) {
 			$args[] = "--exclude '{$exclude}'";

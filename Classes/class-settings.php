@@ -130,6 +130,7 @@ class Settings {
 		add_settings_field( 'user', __( 'User', 'wprsync' ), [ $this, 'settings_user_callback' ], $this->menu_page_settings, $section );
 		add_settings_field( 'host', __( 'Host', 'wprsync' ), [ $this, 'settings_host_callback' ], $this->menu_page_settings, $section );
 		add_settings_field( 'dest', __( 'Path to WP root', 'wprsync' ), [ $this, 'settings_dest_callback' ], $this->menu_page_settings, $section );
+		add_settings_field( 'port', __( 'Port', 'wprsync' ), [ $this, 'settings_port_callback' ], $this->menu_page_settings, $section );
 
 		add_settings_section( $section . '-exclude', __( 'exclude folders', 'wprsync' ), [ $this, 'print_section_info_exclude' ], $this->menu_page_settings );
 		add_settings_field( 'uploads', __( 'wp-content/uploads/', 'wprsync' ), [ $this, 'settings_exclude_uploads_callback' ], $this->menu_page_settings, $section . '-exclude' );
@@ -139,6 +140,10 @@ class Settings {
 	public function sanitize( $input ) {
 
 		foreach ( $input as $key => $val ) {
+			if ( 'port' == $key ) {
+				$input[ $key ] = ( ( $val && 0 != $val ) ? intval( $val ) : '' );
+			}
+
 			if ( 'dest' == $key ) {
 				if ( substr( $val, - 1 ) != '/' ) {
 					$val = $val . '/';
@@ -210,6 +215,12 @@ class Settings {
 		$key = 'dest';
 		$val = $this->get_val( $key );
 		printf( '<input type="text" name="%1$s[%2$s]" id="%2$s" value="%3$s" placeholder="' . ABSPATH . '" />', $this->settings_option, $key, $val );
+	}
+
+	public function settings_port_callback() {
+		$key = 'port';
+		$val = $this->get_val( $key );
+		printf( '<input type="text" name="%1$s[%2$s]" id="%2$s" value="%3$s"/><p><small>%4$s</small></p>', $this->settings_option, $key, $val, __( 'In some cases you need to specify a custom port number. Leave empty for the default port number (22).', 'wprsync' ) );
 	}
 
 	public function settings_exclude_uploads_callback() {
