@@ -4,7 +4,7 @@ Plugin Name: WP rsync
 Plugin URI: https://github.com/nico-martin/wp-rsync
 Description: This plugin lets you push Plugins Themes and Medias via rsync
 Author: Nico Martin
-Version: 0.2.22
+Version: 0.2.23
 Author URI: https://nicomartin.ch
 Text Domain: wprsync
 Domain Path: /languages
